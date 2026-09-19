@@ -28,7 +28,7 @@ namespace hvostov {
     return count;
   }
 
-  void* calc_wrapper(void* data)
+  void* calcWrapper(void* data)
   {
     data_t* d = static_cast< data_t* >(data);
     size_t answer = calc(d->r, d->tests, d->seed);
@@ -44,7 +44,7 @@ namespace hvostov {
     for (size_t i = 0; i < threads; i++) {
       size_t thread_tests = test_per_thread + (i < remainders ? 1 : 0);
       d[i] = {r, thread_tests, i};
-      int err = pthread_create(&v[i], nullptr, calc_wrapper, &d[i]);
+      int err = pthread_create(&v[i], nullptr, calcWrapper, &d[i]);
       if (err) {
         throw std::runtime_error(strerror(err));
       }
