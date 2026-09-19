@@ -41,27 +41,34 @@ namespace hvostov {
     size_t remainders = tests % threads;
     std::vector< pthread_t > v(threads);
     std::vector< data_t > d(threads);
+
+    size_t created_threads = 0;
     for (size_t i = 0; i < threads; i++) {
       size_t thread_tests = test_per_thread + (i < remainders ? 1 : 0);
       d[i] = {r, thread_tests, i};
       int err = pthread_create(&v[i], nullptr, calcWrapper, &d[i]);
       if (err) {
-        throw std::runtime_error(strerror(err));
+        for (size_t j = 0; j < created_threads; ++j) {
+          pthread_join(v[j], nullptr);
+        }
+        throw std::runtime_error(std::string("pthread_create: ") + strerror(err));
       }
+      ++created_threads;
     }
+
     size_t count = 0;
     for (size_t i = 0; i < threads; i++) {
       void* res = nullptr;
       int err = pthread_join(v[i], &res);
       if (err) {
-        throw std::runtime_error(strerror(err));
+        throw std::runtime_error(std::string("pthread_join: ") + strerror(err));
       }
       count += reinterpret_cast< size_t >(res);
     }
+
     double answer = (r * r * 4) * ((count * 1.0) / (tests * 1.0));
     return answer;
   }
-
 }
 
 int main(int argc, char** argv)
